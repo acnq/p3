@@ -4,3 +4,6 @@
 [submodule "2.Hello_world/4.small_cat/feline"]
 	path = 2.Hello_world/4.small_cat/feline
 	url = https://github.com/acnq/feline
+[submodule "2.Hello_world/4.small_cat/feline2"]
+	path = 2.Hello_world/4.small_cat/feline2
+	url = https://github.com/acnq/feline2
