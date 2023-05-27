@@ -80,3 +80,59 @@ def perhapsPerhapsPerhapsNat' : Option (Option (Option Nat)) :=
   ↑(392 : Nat)
 -- ↑ as coericon 
 
+-- Non-Empty Lists and Dependent Coericons
+structure NonEmptyList (α : Type) : Type where
+  head : α
+  tail : List α
+
+instance : Coe (NonEmptyList α) (List α) where
+  coe
+    | {head := x, tail := xs} => x :: xs
+
+namespace Hidden
+class CoeDep (α : Type) (x : α) (β : Type) where
+  coe : β 
+end Hidden
+
+instance : CoeDep (List α) (x :: xs) (NonEmptyList α) where
+  coe := { head := x, tail := xs}
+
+-- Coercing to Types
+structure Monoid where
+  Carrier : Type
+  neutral : Carrier
+  op : Carrier → Carrier → Carrier
+
+def natMulMonoid : Monoid := 
+  { Carrier := Nat, neutral := 1, op := (· * ·)}
+
+def natAddMonoid : Monoid :=
+  { Carrier := Nat, neutral := 0, op := (· + ·)}
+
+def stringMonoid : Monoid := 
+  { Carrier := String, neutral := "", op := String.append }
+
+def listMonoid (α : Type) : Monoid := 
+  { Carrier := List α, neutral := [], op := List.append}
+
+def foldMap (M : Monoid) (f : α → M.Carrier) (xs : List α) : M.Carrier := 
+  let rec go (soFar : M.Carrier) : List α → M.Carrier
+    | [] => soFar
+    | y :: ys => go (M.op soFar (f y)) ys
+  go M.neutral xs
+
+instance : CoeSort Monoid Type where
+  coe m := m.Carrier
+
+def foldMap' (M : Monoid) (f : α → M) (xs : List α) : M := 
+  let rec go (soFar : M) : List α → M 
+    | [] => soFar
+    | y :: ys => go (M.op soFar (f y)) ys
+  go M.neutral xs
+
+instance : CoeSort Bool Prop where
+  coe b := b = true
+
+-- Coercing to Functions
+
+
