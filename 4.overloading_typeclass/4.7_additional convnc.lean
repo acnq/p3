@@ -31,5 +31,22 @@ instance : Display Tree :=
 instance : Display Tree where 
   displayName t := t.latinName
 
+-- Example
+-- definition without a name 
+
+structure NonEmptyList (α : Type) : Type where
+  head : α
+  tail : List α
+
+example : NonEmptyList String := 
+  {
+    head := "Sparrow",
+    tail := ["Duck", "Swan", "Magpie", "Eurasion coot", "Crow"]
+  }
+
+example (n : Nat) (k : Nat) : Bool := 
+  n + k == k + n
+
+
 
 
