@@ -299,45 +299,45 @@ instance : Monad (ReaderExcept ε ρ) where
 
 -- Tracing Evaluator
 -- give up
-inductive ToTrace (α : Type) : Type where
-  | trace : α → ToTrace α
+-- inductive ToTrace (α : Type) : Type where
+--   | trace : α → ToTrace α
 
 
-structure WithLog (logged : Type) (α : Type) where
-  log : List logged
-  val : α 
-deriving Repr 
+-- structure WithLog (logged : Type) (α : Type) where
+--   log : List logged
+--   val : α 
+-- deriving Repr 
 
-instance : Monad (WithLog logged) where
-  pure x := {log := [], val := x}
-  bind result next := 
-    let {log := thisOut, val := thisRes} := result
-    let {log := nextOut, val := nextRes} := next thisRes 
-    {log := thisOut ++ nextOut, val := nextRes}
+-- instance : Monad (WithLog logged) where
+--   pure x := {log := [], val := x}
+--   bind result next := 
+--     let {log := thisOut, val := thisRes} := result
+--     let {log := nextOut, val := nextRes} := next thisRes 
+--     {log := thisOut ++ nextOut, val := nextRes}
 
-def applyTraced (op : ToTrace (Prim empty)) (x y : Int) : WithLog (Prim empty × Int × Int) Int :=
-  match op with
-  | ToTrace.trace times =>
-    let result := x * y
-    { log := [(Prim.times, x, y)],
-      val := result }
-  | ToTrace.trace plus =>
-    let result := x + y
-    { log := [(Prim.plus, x, y)],
-      val := result }
-  | ToTrace.trace minus =>
-    let result := x - y
-    { log := [(Prim.minus, x, y)],
-      val := result }
-  | _ =>
-    let result := 0
-    { log := [(Prim.minus, 0, 0)],
-      val := result }
+-- def applyTraced (op : ToTrace (Prim empty)) (x y : Int) : WithLog (Prim empty × Int × Int) Int :=
+--   match op with
+--   | ToTrace.trace times =>
+--     let result := x * y
+--     { log := [(Prim.times, x, y)],
+--       val := result }
+--   | ToTrace.trace plus =>
+--     let result := x + y
+--     { log := [(Prim.plus, x, y)],
+--       val := result }
+--   | ToTrace.trace minus =>
+--     let result := x - y
+--     { log := [(Prim.minus, x, y)],
+--       val := result }
+--   | _ =>
+--     let result := 0
+--     { log := [(Prim.minus, 0, 0)],
+--       val := result }
 
-deriving instance Repr for WithLog
-deriving instance Repr for Empty
-deriving instance Repr for Prim
+-- deriving instance Repr for WithLog
+-- deriving instance Repr for Empty
+-- deriving instance Repr for Prim
 
 
-open Expr Prim ToTrace in
-#eval evaluateM applyTraced (prim (other (trace times)) (prim (other (trace plus)) (const 1) (const 2)) (prim (other (trace minus)) (const 3) (const 4)))
+-- open Expr Prim ToTrace in
+-- #eval evaluateM applyTraced (prim (other (trace times)) (prim (other (trace plus)) (const 1) (const 2)) (prim (other (trace minus)) (const 3) (const 4)))
