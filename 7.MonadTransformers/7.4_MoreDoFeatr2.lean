@@ -99,4 +99,171 @@ def main (argv : List String) : IO UInt32 := do
       IO.print line 
 
   return 0 
-  
+
+-- stopping iteration
+def OptionT.exec [Applicative m] (action : OptionT m α) : m Unit := 
+  action *> pure ()
+
+def countToThree (n : Nat) : IO Unit := 
+  let nums : AllLessThan := ⟨n⟩
+  OptionT.exec (forM nums fun i => do 
+    if i < 3 then failure else IO.println i)
+
+#eval countToThree 7 
+
+instance : ForIn m AllLessThan Nat where 
+  forIn := ForM.forIn
+
+def countToThree2 (n : Nat) : IO Unit := do
+  let nums : AllLessThan := ⟨n⟩
+  for i in nums do
+    if i < 3 then break
+    IO.println i
+
+#eval countToThree2 7 
+
+def List.find_? (p : α → Bool) (xs : List α) : Option α := do 
+  for x in xs do 
+    if p x then return x 
+  failure 
+
+def List.find__? (p : α → Bool) (xs : List α) : Option α := do 
+  for x in xs do 
+    if not (p x) then continue 
+    return x 
+  failure 
+
+-- ranges 
+def fourToEight : IO Unit := do 
+  for i in [4:9:2] do 
+    IO.println i 
+#eval fourToEight
+
+def parallelLoop := do 
+  for x in ["current", "gooseberry", "rowan"], y in [4:8] do 
+    IO.println (x, y)
+#eval parallelLoop 
+
+-- Mutable Variables 
+
+def two : Nat := Id.run do 
+  let mut x := 0 
+  x := x + 1
+  x := x + 1 
+  return x 
+
+def two_ : Nat := 
+  let block : StateT Nat Id Nat := do 
+    modify (· + 1)
+    modify (· + 1)
+    return (← get)
+  let (result, _finalState) := block 0
+  result 
+
+def three : Nat := Id.run do 
+  let mut x := 0 
+  for _ in [1, 2, 3] do 
+    x := x + 1
+  return x 
+
+def six : Nat := Id.run do 
+  let mut x := 0 
+  for y in [1, 2, 3] do 
+    x := x + y 
+  return x 
+
+def List.count (p : α → Bool) (xs : List α) : Nat := Id.run do 
+  let mut found := 0 
+  for x in xs do
+    if p x then found := found + 1 
+  return found 
+
+
+-- def List.count2 (p : α → Bool) (xs : List α) : Nat := Id.run do 
+--   let mut found := 0
+--   let rec go : List α → Id Unit 
+--     | [] => pure ()
+--     | y :: ys => do 
+--       if p y then found := found + 1 
+--       go ys 
+--   return found 
+
+-- `found` cannot be mutated, only variables declared using `let mut` can be mutated. 
+-- If you did not intent to mutate but define `found`, consider using `let found` instead
+
+-- What counts as a `do` block?
+example : Id Unit := do 
+  let mut x := 0
+  x := x + 1 
+
+-- example : Id Unit := do 
+--   let mut x := 0 
+--   let other := do 
+--     x := x + 1 
+--   other 
+
+-- `x` cannot be mutated, 
+-- only variables declared using `let mut` can be mutated. 
+-- If you did not intent to mutate but define `x`, 
+-- consider using `let x` instead
+
+example : Id Unit := do 
+  let mut x := 0 
+  let other ←  do 
+    x := x + 1 
+  pure other 
+
+-- example : Id Unit := do 
+--   let mut x := 0
+--   let addFour (y : Id Nat) := Id.run y + 4
+--   addFour do 
+--     x := 5
+-- `x` cannot be mutated, 
+-- only variables declared using `let mut` can be mutated. 
+-- If you did not intent to mutate but define `x`, 
+-- consider using `let x` instead
+
+example : Id Unit := do 
+  let mut x := 0
+  do x := x + 1 
+
+example : Id Unit := do 
+  let mut x := 0
+  if x > 2 then 
+    x := x + 1 
+
+example : Id Unit := do 
+  let mut x := 0
+  if x > 2 then do 
+    x := x + 1
+
+example : Id Unit := do
+  let mut x := 0
+  match true with 
+  | true => x := x + 1
+  | false => x := 17 
+
+example : Id Unit := do 
+  let mut x := 0
+  match true with 
+  | true => do 
+    x := x + 1
+  | false => do 
+    x := 17 
+
+example : Id Unit := do 
+  let mut x := 0 
+  for y in [1:5] do 
+    x := x + y
+
+example : Id Unit := do 
+  let mut x := 0
+  unless 1 < 5 do 
+    x := x + 1
+
+example : Unit := Id.run do 
+  let mut x := 0
+  unless 1 < 5 do 
+    x := x + 1
+
+-- Imperative or Functional Programming
